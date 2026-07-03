@@ -254,7 +254,11 @@ app.get("/api/spx-data", async (req, res) => {
 
 // 2. API Endpoint: Manually trigger database sync
 app.post("/api/spx-sync", async (req, res) => {
-  await syncAllTimeframes();
+  // Trigger sync in the background so that the client request doesn't time out
+  syncAllTimeframes()
+    .then(() => console.log("[Sync] Manual sync complete in background."))
+    .catch(err => console.error("[Sync] Manual sync background error:", err));
+
   res.json({ success: true, lastUpdated: new Date().toISOString() });
 });
 

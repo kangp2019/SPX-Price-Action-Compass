@@ -7,13 +7,19 @@ export async function fetchYahooFinanceSPXGeneric(interval: "1m" | "5m" | "15m" 
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=${interval}&range=${range}`;
   
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000); // 6 seconds timeout
+
     const response = await fetch(url, {
+      signal: controller.signal,
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9"
       }
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Yahoo Finance responded with status: ${response.status} for ${interval}`);

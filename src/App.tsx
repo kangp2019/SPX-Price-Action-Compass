@@ -233,10 +233,37 @@ export default function App() {
           
           {/* App Branding */}
           <div className="flex flex-wrap items-center gap-4">
-            <span className="font-bold text-sm text-white tracking-widest flex items-center gap-2 font-mono uppercase">
-              <span className="w-2.5 h-2.5 bg-white rounded-none transform rotate-45 shrink-0"></span>
-              SPX Price Action Compass
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Premium Custom SVG Price Action Compass Logo */}
+              <div className="relative w-9 h-9 flex items-center justify-center bg-[#0d0d11] border border-neutral-800 hover:border-[#00c805]/50 transition-colors duration-300">
+                {/* Visual compass markings on corners */}
+                <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-1 h-0.5 bg-neutral-600"></div>
+                <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-0.5 bg-neutral-600"></div>
+                <div className="absolute left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-1 bg-neutral-600"></div>
+                <div className="absolute right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-1 bg-neutral-600"></div>
+                
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Outer Compass Dial */}
+                  <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="1" className="text-neutral-800" />
+                  {/* Neon Green Dashboard Ring Segment */}
+                  <circle cx="12" cy="12" r="9.5" stroke="#00c805" strokeWidth="1.2" strokeDasharray="12 40" strokeDashoffset="5" className="animate-pulse" />
+                  <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="0.8" strokeDasharray="2 3" className="text-neutral-700" />
+                  
+                  {/* Candlestick compass needle pointing North-East (representing bullish S&P breakout) */}
+                  <g transform="rotate(45 12 12)">
+                    {/* Shadow wick */}
+                    <line x1="12" y1="4" x2="12" y2="20" stroke="#00c805" strokeWidth="1" />
+                    {/* Real body of bull bar */}
+                    <rect x="10.5" y="8" width="3" height="8" fill="#00c805" rx="0.3" />
+                    {/* Accent glowing dot in center of compass */}
+                    <circle cx="12" cy="12" r="1.5" fill="#ffffff" />
+                  </g>
+                </svg>
+              </div>
+              <span className="font-bold text-sm text-white tracking-widest font-mono uppercase">
+                SPX Price Action Compass
+              </span>
+            </div>
           </div>
 
           {/* Mode Tabs Switch */}
