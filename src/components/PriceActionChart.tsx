@@ -892,8 +892,8 @@ export default function PriceActionChart({
           borderClass = isPending 
             ? "stroke-[#2663ff] stroke-[1.5] drop-shadow-[0_0_4px_rgba(38,99,255,0.3)]" 
             : (isBullish 
-              ? "stroke-[var(--up-color)] stroke-[2] drop-shadow-[0_0_4px_rgba(0,200,5,0.3)]"
-              : "stroke-[var(--down-color)] stroke-[2] drop-shadow-[0_0_4px_rgba(255,59,48,0.3)]");
+              ? "stroke-[var(--up-color)] stroke-[2] drop-shadow-[0_0_4px_var(--up-shadow-color)]"
+              : "stroke-[var(--down-color)] stroke-[2] drop-shadow-[0_0_4px_var(--down-shadow-color)]");
           fillClass = isPending ? "fill-[#2663ff]/8" : (isBullish ? "fill-[var(--up-color)]/10" : "fill-[var(--down-color)]/10");
         }
 
