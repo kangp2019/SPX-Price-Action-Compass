@@ -21,7 +21,7 @@ const PATTERN_CATEGORIES = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"review" | "challenge">("review");
+  const [activeTab, setActiveTab] = useState<"review" | "challenge">("challenge");
   const [timeframe, setTimeframe] = useState<"1m" | "5m" | "15m" | "4h" | "1d">("5m"); // Default to "5m" (5min K)
   const [candles, setCandles] = useState<Candle[]>([]);
   const [patterns, setPatterns] = useState<DetectedPattern[]>([]);
@@ -274,17 +274,6 @@ export default function App() {
           {/* Mode Tabs Switch (Desktop) */}
           <div className="hidden sm:flex items-center bg-[#0d0d11] p-1 rounded-lg border border-neutral-800 w-full sm:w-auto justify-center">
             <button
-              onClick={() => setActiveTab("review")}
-              className={`px-4 py-1.5 rounded-md text-xs font-bold tracking-widest transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer min-h-0 flex-initial ${
-                activeTab === "review"
-                  ? "bg-white text-black font-black border border-white shadow-[0_2px_8px_rgba(255,255,255,0.15)]"
-                  : "bg-transparent text-slate-400 hover:text-white border border-transparent hover:border-neutral-700"
-              }`}
-            >
-              <BarChart3 className={`w-3.5 h-3.5 ${activeTab === "review" ? "text-black" : "text-slate-400"}`} />
-              价格行为诊断
-            </button>
-            <button
               onClick={() => {
                 setActiveTab("challenge");
                 setSelectedPattern(null);
@@ -298,6 +287,17 @@ export default function App() {
             >
               <GraduationCap className={`w-3.5 h-3.5 ${activeTab === "challenge" ? "text-black" : "text-slate-400"}`} />
               实战模拟
+            </button>
+            <button
+              onClick={() => setActiveTab("review")}
+              className={`px-4 py-1.5 rounded-md text-xs font-bold tracking-widest transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer min-h-0 flex-initial ${
+                activeTab === "review"
+                  ? "bg-white text-black font-black border border-white shadow-[0_2px_8px_rgba(255,255,255,0.15)]"
+                  : "bg-transparent text-slate-400 hover:text-white border border-transparent hover:border-neutral-700"
+              }`}
+            >
+              <BarChart3 className={`w-3.5 h-3.5 ${activeTab === "review" ? "text-black" : "text-slate-400"}`} />
+              行为学习
             </button>
           </div>
 
@@ -760,18 +760,6 @@ export default function App() {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-[#07070a]/95 backdrop-blur-xl border-t border-neutral-900 z-50 px-8 pb-safe">
         <div className="flex items-center justify-around h-14">
           <button
-            onClick={() => setActiveTab("review")}
-            className={`flex flex-col items-center justify-center gap-1.5 py-1 px-4 transition-all duration-200 cursor-pointer ${
-              activeTab === "review"
-                ? "text-white font-bold"
-                : "text-neutral-500 hover:text-neutral-300"
-            }`}
-          >
-            <BarChart3 className={`w-4 h-4 transition-transform duration-200 ${activeTab === "review" ? "text-white scale-110" : "text-neutral-500"}`} />
-            <span className="text-[10px] tracking-widest font-medium">诊断</span>
-          </button>
-          
-          <button
             onClick={() => {
               setActiveTab("challenge");
               setSelectedPattern(null);
@@ -784,7 +772,19 @@ export default function App() {
             }`}
           >
             <GraduationCap className={`w-4.5 h-4.5 transition-transform duration-200 ${activeTab === "challenge" ? "text-white scale-110" : "text-neutral-500"}`} />
-            <span className="text-[10px] tracking-widest font-medium">模拟</span>
+            <span className="text-[10px] tracking-widest font-medium">实战</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("review")}
+            className={`flex flex-col items-center justify-center gap-1.5 py-1 px-4 transition-all duration-200 cursor-pointer ${
+              activeTab === "review"
+                ? "text-white font-bold"
+                : "text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            <BarChart3 className={`w-4 h-4 transition-transform duration-200 ${activeTab === "review" ? "text-white scale-110" : "text-neutral-500"}`} />
+            <span className="text-[10px] tracking-widest font-medium">学习</span>
           </button>
         </div>
       </div>

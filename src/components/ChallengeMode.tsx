@@ -287,9 +287,6 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
           {/* Row 1: Fast Mode Selection & Quick t-1/t-2 & Toggleable Advanced Picker */}
           <div className="flex flex-row items-center justify-between gap-2 overflow-x-auto no-scrollbar w-full whitespace-nowrap">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono shrink-0">
-                模式：
-              </span>
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={() => {
