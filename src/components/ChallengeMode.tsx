@@ -194,20 +194,22 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
     return lastFutureCandle.close >= signalCandle.close ? "LONG" : "SHORT";
   };
 
-  const handleAnswerSubmit = (option: "LONG" | "SHORT" | "NONE") => {
+  const handleAnswerSubmit = (option: "LONG" | "SHORT" | "SKIP" | "NONE") => {
     if (isAnswered) return;
     
     setSelectedOption(option);
     setIsAnswered(true);
     setRevealFuture(true); // Auto-reveal future bars when answered!
 
-    const correctAns = getCorrectAnswer();
-    const isCorrect = option === correctAns;
+    if (option !== "SKIP" && option !== "NONE") {
+      const correctAns = getCorrectAnswer();
+      const isCorrect = option === correctAns;
 
-    setQuizScore(prev => ({
-      wins: isCorrect ? prev.wins + 1 : prev.wins,
-      total: prev.total + 1
-    }));
+      setQuizScore(prev => ({
+        wins: isCorrect ? prev.wins + 1 : prev.wins,
+        total: prev.total + 1
+      }));
+    }
   };
 
   const correctAns = getCorrectAnswer();
@@ -568,6 +570,25 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                     {isAnswered && correctAns === "SHORT" && <Check className="w-4 h-4 text-[#00c805] shrink-0" />}
                     {isAnswered && selectedOption === "SHORT" && correctAns !== "SHORT" && <X className="w-4 h-4 text-[#ff3b30] shrink-0" />}
                   </button>
+
+                  {/* Option C: SKIP */}
+                  <button
+                    onClick={() => handleAnswerSubmit("SKIP")}
+                    disabled={isAnswered}
+                    className={`w-full p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
+                      isAnswered
+                        ? selectedOption === "SKIP"
+                          ? "bg-neutral-900/40 border-neutral-700 text-slate-400"
+                          : "bg-transparent border-neutral-900 text-slate-600"
+                        : "bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="flex flex-col pr-2">
+                      <span className="text-xs font-bold">空仓观望 / 不确定 (Stay Cash)</span>
+                      <span className="text-[10px] opacity-75 mt-0.5 text-slate-500">不确定未来方向，选择跳过此信号。不计入胜率。</span>
+                    </div>
+                    {isAnswered && selectedOption === "SKIP" && <Eye className="w-4 h-4 text-slate-400 shrink-0" />}
+                  </button>
                 </div>
               </div>
             )}
@@ -579,21 +600,31 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
               <div className="space-y-4 animate-fade-in text-left">
                 {/* Flat, cohesive results ribbon */}
                 <div className={`p-3 rounded-none border flex items-start gap-2.5 ${
-                  selectedOption === correctAns 
-                    ? "bg-[#00c805]/5 border-[#00c805] text-[#00c805]" 
-                    : "bg-[#ff3b30]/5 border-[#ff3b30] text-[#ff3b30]"
+                  selectedOption === "SKIP"
+                    ? "bg-neutral-900/60 border-neutral-700 text-slate-300"
+                    : selectedOption === correctAns 
+                      ? "bg-[#00c805]/5 border-[#00c805] text-[#00c805]" 
+                      : "bg-[#ff3b30]/5 border-[#ff3b30] text-[#ff3b30]"
                 }`}>
-                  {selectedOption === correctAns ? (
+                  {selectedOption === "SKIP" ? (
+                    <Eye className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                  ) : selectedOption === correctAns ? (
                     <Check className="w-4 h-4 text-[#00c805] shrink-0 mt-0.5" />
                   ) : (
                     <X className="w-4 h-4 text-[#ff3b30] shrink-0 mt-0.5" />
                   )}
                   <div>
                     <h5 className="text-xs font-bold">
-                      {selectedOption === correctAns ? "决策完美！预案符合真实走向" : "判断偏差！市场做出了相反的选择"}
+                      {selectedOption === "SKIP" 
+                        ? "选择空仓观望（不计入总胜率）" 
+                        : selectedOption === correctAns 
+                          ? "决策完美！预案符合真实走向" 
+                          : "判断偏差！市场做出了相反的选择"}
                     </h5>
                     <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
-                      真实后续行情已拉出，可以通过左侧图表复盘走位。
+                      {selectedOption === "SKIP"
+                        ? `本次待定。真实突破方向为：${correctAns === "LONG" ? "突破多单 (Long Breakout)" : "跌破空单 (Short Breakdown)"}。`
+                        : "真实后续行情已拉出，可以通过左侧图表复盘走位。"}
                     </p>
                   </div>
                 </div>
