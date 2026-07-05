@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for the build phase)
-RUN npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copy the rest of the application source code and data files
 COPY . .
@@ -26,7 +26,7 @@ ENV PORT=3000
 
 # Copy package configuration files and install only production dependencies
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 
 # Copy compiled dist files and data directory from the builder stage
 COPY --from=builder /app/dist ./dist
