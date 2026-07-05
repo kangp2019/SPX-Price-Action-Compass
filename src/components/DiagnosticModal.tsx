@@ -40,186 +40,13 @@ interface PatternDiagramProps {
   isChineseStyle?: boolean;
 }
 
-function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: PatternDiagramProps) {
-  const indices = pattern?.candleIndices || [];
-  
-  // Verify if we have valid candles and indices to render the actual historical candles
-  const hasValidCandles = 
-    candles && 
-    candles.length > 0 && 
-    indices.length > 0 && 
-    indices.every(idx => idx >= 0 && idx < candles.length);
-
-  if (hasValidCandles && candles) {
-    const minIdx = Math.min(...indices);
-    const maxIdx = Math.max(...indices);
-    
-    // Add 2 candles before and 2 after for visual context
-    const startIdx = Math.max(0, minIdx - 2);
-    const endIdx = Math.min(candles.length - 1, maxIdx + 2);
-    const subCandles = candles.slice(startIdx, endIdx + 1);
-    
-    const highs = subCandles.map(c => c.high);
-    const lows = subCandles.map(c => c.low);
-    const highest = Math.max(...highs);
-    const lowest = Math.min(...lows);
-    
-    const range = highest - lowest || 1;
-    const padding = range * 0.15; // 15% top/bottom safety padding
-    const yMin = lowest - padding;
-    const yMax = highest + padding;
-    
-    // SVG Dimensions
-    const width = 360;
-    const height = 150;
-    const paddingLeft = 30;
-    const paddingRight = 45;
-    const paddingTop = 25;
-    const paddingBottom = 30;
-    
-    const chartWidth = width - paddingLeft - paddingRight;
-    const chartHeight = height - paddingTop - paddingBottom;
-    
-    const colWidth = chartWidth / subCandles.length;
-    const bodyWidth = Math.max(8, colWidth * 0.5);
-    
-    const getY = (val: number) => {
-      return paddingTop + chartHeight - ((val - yMin) / (yMax - yMin)) * chartHeight;
-    };
-
-    return (
-      <div className="flex flex-col items-center justify-center p-4 bg-neutral-950 rounded-xl border border-neutral-800/80 shadow-inner w-full">
-        <div className="w-full overflow-x-auto overflow-y-hidden">
-          <svg width={width} height={height} className="overflow-visible mx-auto">
-            {/* Subtle horizontal grid guide lines */}
-            <line x1={paddingLeft} y1={getY(highest)} x2={width - paddingRight} y2={getY(highest)} stroke="#202020" strokeDasharray="3,3" />
-            <line x1={paddingLeft} y1={getY(lowest)} x2={width - paddingRight} y2={getY(lowest)} stroke="#202020" strokeDasharray="3,3" />
-            
-            {/* Trigger Reference Price Line */}
-            {pattern.price && pattern.price >= yMin && pattern.price <= yMax && (
-              <g>
-                <line 
-                  x1={paddingLeft} 
-                  y1={getY(pattern.price)} 
-                  x2={width - paddingRight} 
-                  y2={getY(pattern.price)} 
-                  stroke="#6366f1" 
-                  strokeWidth={1} 
-                  strokeDasharray="4,2" 
-                  className="opacity-75"
-                />
-                <text 
-                  x={width - paddingRight + 5} 
-                  y={getY(pattern.price) + 3} 
-                  fill="#818cf8" 
-                  fontSize="8px" 
-                  fontFamily="monospace"
-                  textAnchor="start"
-                >
-                  ${pattern.price.toFixed(2)}
-                </text>
-              </g>
-            )}
-
-            {subCandles.map((c, i) => {
-              const globalIdx = startIdx + i;
-              const isPart = indices.includes(globalIdx);
-              
-              const x = paddingLeft + (i + 0.5) * colWidth;
-              const yHigh = getY(c.high);
-              const yLow = getY(c.low);
-              const yOpen = getY(c.open);
-              const yClose = getY(c.close);
-              
-              const isBullish = c.close >= c.open;
-              const isBullColor = isChineseStyle ? "#ff3b30" : "#00c805";
-              const isBearColor = isChineseStyle ? "#00c805" : "#ff3b30";
-              const candleColor = isBullish ? isBullColor : isBearColor;
-              
-              const topY = Math.min(yOpen, yClose);
-              const bottomY = Math.max(yOpen, yClose);
-              const bodyHeight = Math.max(1.5, bottomY - topY);
-              
-              return (
-                <g key={i}>
-                  {/* Highlight bar area behind candles that are part of the pattern */}
-                  {isPart && (
-                    <rect
-                      x={x - colWidth / 2}
-                      y={paddingTop - 10}
-                      width={colWidth}
-                      height={chartHeight + 15}
-                      fill="#6366f1"
-                      fillOpacity={0.06}
-                      stroke="#6366f1"
-                      strokeOpacity={0.12}
-                      strokeWidth={1}
-                      strokeDasharray="2,2"
-                      rx={2}
-                    />
-                  )}
-                  
-                  {/* Shadow Line / Wick */}
-                  <line
-                    x1={x}
-                    y1={yHigh}
-                    x2={x}
-                    y2={yLow}
-                    stroke={candleColor}
-                    strokeWidth={1.5}
-                  />
-                  
-                  {/* Real Body Rect */}
-                  <rect
-                    x={x - bodyWidth / 2}
-                    y={topY}
-                    width={bodyWidth}
-                    height={bodyHeight}
-                    fill={isBullish ? "none" : candleColor}
-                    stroke={candleColor}
-                    strokeWidth={1.5}
-                    rx={1}
-                  />
-
-                  {/* Marker underneath the pattern candles */}
-                  {isPart && (
-                    <g>
-                      <circle cx={x} cy={paddingTop + chartHeight + 8} r={2.5} fill="#818cf8" />
-                      {indices[indices.length - 1] === globalIdx && (
-                        <text
-                          x={x}
-                          y={paddingTop + chartHeight + 18}
-                          fill="#818cf8"
-                          fontSize="8px"
-                          fontWeight="bold"
-                          textAnchor="middle"
-                          fontFamily="sans-serif"
-                        >
-                          形态区间
-                        </text>
-                      )}
-                    </g>
-                  )}
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-        <div className="text-[10px] text-slate-400 font-mono mt-2 flex items-center gap-1.5 justify-center">
-          <span className="inline-block w-2.5 h-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-sm" />
-          <span>阴影标记为当前识别出的真实 K 线组合 (共 {indices.length} 根)</span>
-        </div>
-      </div>
-    );
-  }
-
-  // FALLBACK STATIC DIAGRAMS if no real candle data is passed
+function renderStaticDiagram(type: string, isChineseStyle: boolean) {
   const isBullColor = isChineseStyle ? "#ff3b30" : "#00c805";
   const isBearColor = isChineseStyle ? "#00c805" : "#ff3b30";
 
   if (type.includes("PIN_BAR_BULLISH")) {
     return (
-      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
         <div className="flex flex-col items-center">
           <div className="text-[9px] text-slate-500 font-mono mb-2">前序跌势</div>
           <div className="flex flex-col items-center h-16 w-8 justify-center">
@@ -243,7 +70,7 @@ function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: Patt
 
   if (type.includes("PIN_BAR_BEARISH")) {
     return (
-      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
         <div className="flex flex-col items-center">
           <div className="text-[9px] text-slate-500 font-mono mb-2">前序涨势</div>
           <div className="flex flex-col items-center h-16 w-8 justify-center">
@@ -267,7 +94,7 @@ function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: Patt
 
   if (type.includes("ENGULFING_BULLISH")) {
     return (
-      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
         <div className="flex flex-col items-center">
           <div className="text-[9px] font-mono mb-2" style={{ color: isBearColor }}>1. 跌势阴线</div>
           <div className="flex flex-col items-center h-16 w-8 justify-center">
@@ -291,7 +118,7 @@ function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: Patt
 
   if (type.includes("ENGULFING_BEARISH")) {
     return (
-      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
         <div className="flex flex-col items-center">
           <div className="text-[9px] font-mono mb-2" style={{ color: isBullColor }}>1. 升势阳线</div>
           <div className="flex flex-col items-center h-16 w-8 justify-center">
@@ -316,7 +143,7 @@ function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: Patt
   if (type.includes("STAR") || type.includes("MORNING") || type.includes("EVENING")) {
     const isBullish = type.includes("BULLISH") || type.includes("MORNING");
     return (
-      <div className="flex items-center justify-center gap-4 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+      <div className="flex items-center justify-center gap-4 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
         <div className="flex flex-col items-center">
           <div className="text-[8px] text-slate-500 font-mono mb-1">1. 前序趋势</div>
           <div className="w-3.5 h-10" style={{ backgroundColor: isBullish ? isBearColor : isBullColor }} />
@@ -333,15 +160,256 @@ function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: Patt
     );
   }
 
+  if (type === "DOJI") {
+    return (
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
+        <div className="flex flex-col items-center">
+          <div className="text-[9px] font-mono mb-2 text-slate-400">十字星 (僵局)</div>
+          <div className="flex flex-col items-center h-16 w-8 justify-center">
+            <div className="w-0.5 h-6 bg-slate-400" />
+            <div className="w-4 h-0.5 bg-slate-400" />
+            <div className="w-0.5 h-6 bg-slate-400" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === "INSIDE_BAR") {
+    return (
+      <div className="flex items-center justify-center gap-6 py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
+        <div className="flex flex-col items-center">
+          <div className="text-[9px] text-slate-500 font-mono mb-2">1. 强力母线</div>
+          <div className="flex flex-col items-center h-16 w-8 justify-center">
+            <div className="w-0.5 h-1" style={{ backgroundColor: isBullColor }} />
+            <div className="w-5 h-14 border" style={{ backgroundColor: isBullColor, borderColor: isBullColor }} />
+            <div className="w-0.5 h-1" style={{ backgroundColor: isBullColor }} />
+          </div>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="text-[9px] text-slate-300 font-mono mb-2">2. 内含子线</div>
+          <div className="flex flex-col items-center h-16 w-8 justify-center">
+            <div className="w-0.5 h-2 bg-slate-500" />
+            <div className="w-3 h-6 border bg-slate-500/20 border-slate-500" />
+            <div className="w-0.5 h-2 bg-slate-500" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === "DOUBLE_TOP") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 50 L 40 10 L 80 40 L 120 10 L 150 50" fill="none" stroke={isBearColor} strokeWidth="2" />
+          <line x1="20" y1="40" x2="140" y2="40" stroke="#6366f1" strokeDasharray="4,2" />
+          <text x="80" y="55" fill="#818cf8" fontSize="8px" textAnchor="middle">颈线 (Neckline)</text>
+          <circle cx="40" cy="10" r="3" fill={isBearColor} />
+          <circle cx="120" cy="10" r="3" fill={isBearColor} />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "DOUBLE_BOTTOM") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 10 L 40 50 L 80 20 L 120 50 L 150 10" fill="none" stroke={isBullColor} strokeWidth="2" />
+          <line x1="20" y1="20" x2="140" y2="20" stroke="#6366f1" strokeDasharray="4,2" />
+          <text x="80" y="12" fill="#818cf8" fontSize="8px" textAnchor="middle">颈线 (Neckline)</text>
+          <circle cx="40" cy="50" r="3" fill={isBullColor} />
+          <circle cx="120" cy="50" r="3" fill={isBullColor} />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "HEAD_AND_SHOULDERS") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 50 L 35 25 L 60 40 L 80 5 L 100 40 L 125 25 L 150 50" fill="none" stroke={isBearColor} strokeWidth="2" />
+          <line x1="20" y1="40" x2="140" y2="40" stroke="#6366f1" strokeDasharray="4,2" />
+          <text x="80" y="55" fill="#818cf8" fontSize="8px" textAnchor="middle">颈线 (Neckline)</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "INVERSE_HEAD_AND_SHOULDERS") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 10 L 35 35 L 60 20 L 80 55 L 100 20 L 125 35 L 150 10" fill="none" stroke={isBullColor} strokeWidth="2" />
+          <line x1="20" y1="20" x2="140" y2="20" stroke="#6366f1" strokeDasharray="4,2" />
+          <text x="80" y="12" fill="#818cf8" fontSize="8px" textAnchor="middle">颈线 (Neckline)</text>
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "FLAG_BULLISH") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 50 L 40 10 L 60 25 L 80 15 L 100 30 L 120 20 L 150 5" fill="none" stroke={isBullColor} strokeWidth="2" />
+          <line x1="30" y1="5" x2="130" y2="15" stroke="#6366f1" strokeDasharray="3,3" />
+          <line x1="45" y1="35" x2="115" y2="40" stroke="#6366f1" strokeDasharray="3,3" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "FLAG_BEARISH") {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 10 L 40 50 L 60 35 L 80 45 L 100 30 L 120 40 L 150 55" fill="none" stroke={isBearColor} strokeWidth="2" />
+          <line x1="30" y1="55" x2="130" y2="45" stroke="#6366f1" strokeDasharray="3,3" />
+          <line x1="45" y1="25" x2="115" y2="20" stroke="#6366f1" strokeDasharray="3,3" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type.includes("TRIANGLE")) {
+    return (
+      <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full relative">
+        <svg width="160" height="60" className="overflow-visible">
+          <path d="M 10 50 L 40 10 L 70 40 L 100 20 L 120 35 L 135 25" fill="none" stroke="#eab308" strokeWidth="2" />
+          <line x1="20" y1="5" x2="150" y2="30" stroke="#6366f1" strokeDasharray="3,3" />
+          <line x1="20" y1="55" x2="150" y2="30" stroke="#6366f1" strokeDasharray="3,3" />
+        </svg>
+      </div>
+    );
+  }
+
   // Generic fallback
   return (
-    <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800">
+    <div className="flex flex-col items-center justify-center py-5 bg-neutral-900/60 rounded-xl border border-neutral-800 w-full">
       <div className="w-32 h-12 flex items-end justify-center gap-1.5">
         <div className="w-2 h-6" style={{ backgroundColor: `${isBearColor}60` }} />
         <div className="w-2 h-10" style={{ backgroundColor: isBullColor }} />
         <div className="w-2 h-8 bg-neutral-800" />
       </div>
       <div className="text-[8px] text-slate-500 font-mono mt-2">形态结构示意</div>
+    </div>
+  );
+}
+
+function PatternDiagram({ type, pattern, candles, isChineseStyle = false }: PatternDiagramProps) {
+  const indices = pattern?.candleIndices || [];
+  
+  // Verify if we have valid candles and indices to render the actual historical candles
+  const hasValidCandles = 
+    candles && 
+    candles.length > 0 && 
+    indices.length > 0 && 
+    indices.every(idx => idx >= 0 && idx < candles.length);
+
+  return (
+    <div className="space-y-4">
+      {hasValidCandles && candles && (
+        <div className="flex flex-col items-center justify-center p-4 bg-neutral-950 rounded-xl border border-neutral-800/80 shadow-inner w-full">
+          <div className="w-full overflow-x-auto overflow-y-hidden">
+            <svg width="360" height="150" className="overflow-visible mx-auto">
+              {/* Subtle horizontal grid guide lines */}
+              {(() => {
+                const minIdx = Math.min(...indices);
+                const maxIdx = Math.max(...indices);
+                const startIdx = Math.max(0, minIdx - 2);
+                const endIdx = Math.min(candles.length - 1, maxIdx + 2);
+                const subCandles = candles.slice(startIdx, endIdx + 1);
+                const highs = subCandles.map(c => c.high);
+                const lows = subCandles.map(c => c.low);
+                const highest = Math.max(...highs);
+                const lowest = Math.min(...lows);
+                const range = highest - lowest || 1;
+                const padding = range * 0.15;
+                const yMin = lowest - padding;
+                const yMax = highest + padding;
+                const width = 360;
+                const height = 150;
+                const paddingLeft = 30;
+                const paddingRight = 45;
+                const paddingTop = 25;
+                const paddingBottom = 30;
+                const chartWidth = width - paddingLeft - paddingRight;
+                const chartHeight = height - paddingTop - paddingBottom;
+                const colWidth = chartWidth / subCandles.length;
+                const bodyWidth = Math.max(8, colWidth * 0.5);
+                const getY = (val: number) => paddingTop + chartHeight - ((val - yMin) / (yMax - yMin)) * chartHeight;
+
+                return (
+                  <>
+                    <line x1={paddingLeft} y1={getY(highest)} x2={width - paddingRight} y2={getY(highest)} stroke="#202020" strokeDasharray="3,3" />
+                    <line x1={paddingLeft} y1={getY(lowest)} x2={width - paddingRight} y2={getY(lowest)} stroke="#202020" strokeDasharray="3,3" />
+                    
+                    {pattern.price && pattern.price >= yMin && pattern.price <= yMax && (
+                      <g>
+                        <line x1={paddingLeft} y1={getY(pattern.price)} x2={width - paddingRight} y2={getY(pattern.price)} stroke="#6366f1" strokeWidth={1} strokeDasharray="4,2" className="opacity-75" />
+                        <text x={width - paddingRight + 5} y={getY(pattern.price) + 3} fill="#818cf8" fontSize="8px" fontFamily="monospace" textAnchor="start">
+                          ${pattern.price.toFixed(2)}
+                        </text>
+                      </g>
+                    )}
+
+                    {subCandles.map((c, i) => {
+                      const globalIdx = startIdx + i;
+                      const isPart = indices.includes(globalIdx);
+                      const x = paddingLeft + (i + 0.5) * colWidth;
+                      const yHigh = getY(c.high);
+                      const yLow = getY(c.low);
+                      const yOpen = getY(c.open);
+                      const yClose = getY(c.close);
+                      const isBullish = c.close >= c.open;
+                      const isBullColor = isChineseStyle ? "#ff3b30" : "#00c805";
+                      const isBearColor = isChineseStyle ? "#00c805" : "#ff3b30";
+                      const candleColor = isBullish ? isBullColor : isBearColor;
+                      const topY = Math.min(yOpen, yClose);
+                      const bottomY = Math.max(yOpen, yClose);
+                      const bodyHeight = Math.max(1.5, bottomY - topY);
+
+                      return (
+                        <g key={i}>
+                          {isPart && (
+                            <rect x={x - colWidth / 2} y={paddingTop - 10} width={colWidth} height={chartHeight + 15} fill="#6366f1" fillOpacity={0.06} stroke="#6366f1" strokeOpacity={0.12} strokeWidth={1} strokeDasharray="2,2" rx={2} />
+                          )}
+                          <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={candleColor} strokeWidth={1.5} />
+                          <rect x={x - bodyWidth / 2} y={topY} width={bodyWidth} height={bodyHeight} fill={isBullish ? "none" : candleColor} stroke={candleColor} strokeWidth={1.5} rx={1} />
+                          {isPart && (
+                            <g>
+                              <circle cx={x} cy={paddingTop + chartHeight + 8} r={2.5} fill="#818cf8" />
+                              {indices[indices.length - 1] === globalIdx && (
+                                <text x={x} y={paddingTop + chartHeight + 18} fill="#818cf8" fontSize="8px" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">形态区间</text>
+                              )}
+                            </g>
+                          )}
+                        </g>
+                      );
+                    })}
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+          <div className="text-[10px] text-slate-400 font-mono mt-2 flex items-center gap-1.5 justify-center">
+            <span className="inline-block w-2.5 h-2.5 bg-indigo-500/10 border border-indigo-500/20 rounded-sm" />
+            <span>阴影标记为当前识别出的真实 K 线组合 (共 {indices.length} 根)</span>
+          </div>
+        </div>
+      )}
+
+      {/* Static Schematic Diagram */}
+      <div className="space-y-2 pt-2 border-t border-neutral-900/50">
+        <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 px-1">
+          <HelpCircle className="w-3 h-3" />
+          标准形态示意图
+        </div>
+        {renderStaticDiagram(type, isChineseStyle)}
+      </div>
     </div>
   );
 }
