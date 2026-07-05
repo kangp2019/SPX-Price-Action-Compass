@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Candle, DetectedPattern, PatternType } from "../types.js";
-import { Award, Eye, Play, Sparkles, Check, X, HelpCircle, ArrowRight, Target, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Award, Eye, Play, Sparkles, Check, X, HelpCircle, ArrowRight, Target, Filter, ChevronDown, ChevronUp, Layers } from "lucide-react";
 import PriceActionChart from "./PriceActionChart.tsx";
 
 interface ChallengeModeProps {
@@ -44,6 +44,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
   const [revealFuture, setRevealFuture] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [showZones, setShowZones] = useState<boolean>(true);
 
   // Helper to format date string for a pattern
   const getPatternDateStr = (p: DetectedPattern) => {
@@ -145,29 +146,47 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
     
     const highTrigger = signalCandle.high;
     const lowTrigger = signalCandle.low;
+    const range = Math.max(0.1, highTrigger - lowTrigger);
     
-    let triggered: "LONG" | "SHORT" | null = null;
-    for (const c of futureCandles) {
-      if (c.high > highTrigger && c.low < lowTrigger) {
-        // Outside day: use the close price direction relative to trigger close
-        triggered = c.close > signalCandle.close ? "LONG" : "SHORT";
-        break;
-      } else if (c.high > highTrigger) {
-        triggered = "LONG";
-        break;
-      } else if (c.low < lowTrigger) {
-        triggered = "SHORT";
-        break;
+    // We define a minimum breakout threshold (e.g., 10% of the signal candle's range or 0.2 points, whichever is larger)
+    // This perfectly prevents minor wicks or noises from triggering incorrect directions
+    const threshold = Math.max(0.2, range * 0.1);
+    
+    let firstLongIndex = -1;
+    let firstShortIndex = -1;
+    
+    for (let i = 0; i < futureCandles.length; i++) {
+      const c = futureCandles[i];
+      if (firstLongIndex === -1 && c.high > highTrigger + threshold) {
+        firstLongIndex = i;
+      }
+      if (firstShortIndex === -1 && c.low < lowTrigger - threshold) {
+        firstShortIndex = i;
       }
     }
     
-    if (!triggered) {
-      // Fallback: look at the general trend of the last future candle relative to signal candle
-      const lastFutureCandle = futureCandles[futureCandles.length - 1];
-      triggered = lastFutureCandle.close >= signalCandle.close ? "LONG" : "SHORT";
+    // If only one was triggered, that's the clear winner!
+    if (firstLongIndex !== -1 && firstShortIndex === -1) return "LONG";
+    if (firstShortIndex !== -1 && firstLongIndex === -1) return "SHORT";
+    
+    // If both were triggered:
+    if (firstLongIndex !== -1 && firstShortIndex !== -1) {
+      // If one was triggered significantly earlier (at least 2 candles earlier), we take that one
+      if (firstLongIndex < firstShortIndex - 1) return "LONG";
+      if (firstShortIndex < firstLongIndex - 1) return "SHORT";
+      
+      // Otherwise, we compare the maximum excursions over the 20-candle window to see which was the real move
+      const maxHigh = Math.max(...futureCandles.map(c => c.high));
+      const minLow = Math.min(...futureCandles.map(c => c.low));
+      const maxUpMove = maxHigh - highTrigger;
+      const maxDownMove = lowTrigger - minLow;
+      
+      return maxUpMove >= maxDownMove ? "LONG" : "SHORT";
     }
     
-    return triggered;
+    // If neither crossed the threshold, look at the net price change at the end of the future horizon
+    const lastFutureCandle = futureCandles[futureCandles.length - 1];
+    return lastFutureCandle.close >= signalCandle.close ? "LONG" : "SHORT";
   };
 
   const handleAnswerSubmit = (option: "LONG" | "SHORT" | "NONE") => {
@@ -312,9 +331,24 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
               </div>
             </div>
 
-            <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-auto">
-              总形态: <span className="text-slate-300 font-bold">{challengePatterns.length}</span>
-            </span>
+            <div className="flex items-center gap-3 shrink-0 ml-auto">
+              <button
+                onClick={() => setShowZones(prev => !prev)}
+                className={`px-2 py-1 text-[10px] font-bold rounded-md border transition-all flex items-center gap-1 cursor-pointer shrink-0 ${
+                  showZones
+                    ? "bg-[#00c805]/15 border-[#00c805]/40 text-[#00c805]"
+                    : "bg-[#0d0d11] border-neutral-800 hover:border-slate-600 text-slate-500 hover:text-slate-300"
+                }`}
+                title="开启/关闭 支撑阻力参考线"
+              >
+                <Layers className="w-3 h-3" />
+                <span>S/R 支撑阻力</span>
+              </button>
+
+              <span className="text-[10px] text-slate-500 font-mono shrink-0">
+                总形态: <span className="text-slate-300 font-bold">{challengePatterns.length}</span>
+              </span>
+            </div>
           </div>
 
           {/* Row 2: Category Filter & Specific Pattern Events - COLLAPSIBLE and HIDDEN by default */}
@@ -423,7 +457,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
             name: isAnswered ? activePattern.name : "待判信号",
             candleIndices: activePattern.candleIndices.map(i => i - Math.max(0, cutoffIndex - 70)) 
           }] : []}
-          zones={[]}
+          zones={zones}
           trend={{ direction: "SIDEWAYS", strength: 50, labels: [] }}
           selectedPattern={activePattern ? { 
             ...activePattern, 
@@ -433,7 +467,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
           } : null}
           onSelectPattern={() => {}}
           showPatterns={true}
-          showZones={false}
+          showZones={showZones}
           showTrends={false}
           showVolume={true}
           focusIndex={visibleChallengeCandles.length - 1} // Center on cutoff bar
