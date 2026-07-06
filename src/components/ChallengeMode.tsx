@@ -476,8 +476,8 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
       </div>
 
       {/* Column 2: Interactive Questionnaire Area (Right side) */}
-      <div className="lg:col-span-1 h-full">
-        <div className="bg-black border border-neutral-800 rounded-none p-5 shadow-xl flex flex-col justify-between h-full min-h-[460px]">
+      <div className="lg:col-span-1 h-full flex flex-col">
+        <div className="bg-black border border-neutral-800 rounded-none p-4 sm:p-5 shadow-xl flex flex-col justify-between flex-1 min-h-[460px] lg:max-h-[calc(100vh-220px)] xl:max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin">
           
           <div>
             {/* Flat Header inside Sidecard */}
@@ -489,7 +489,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
             </div>
 
             {activePattern && (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Clean, unnested details block */}
                 <div className="text-left font-mono">
                   <div className="text-[9px] text-slate-500 uppercase tracking-wider">
@@ -501,7 +501,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                       {isAnswered ? `$${activePattern.price}` : "位置: 信号收盘点"}
                     </span>
                   </h4>
-                  <p className="text-xs text-slate-400 mt-2.5 leading-relaxed font-sans">
+                  <p className="text-xs text-slate-400 mt-2 leading-relaxed font-sans">
                     {isAnswered 
                       ? activePattern.description 
                       : "请研判信号 K 线 (Signal Bar) 附近的价格行为与关键支撑阻力，并在下方给出你的多空挂单决策。"}
@@ -509,26 +509,28 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                 </div>
 
                 {/* Flat Option Buttons */}
-                <div className="space-y-3 pt-2 font-sans">
+                <div className="space-y-2.5 pt-1 font-sans">
                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider text-left font-mono">请给出你的交易决策预案:</p>
                   
                   {/* Option A: LONG */}
                   <button 
                     onClick={() => handleAnswerSubmit("LONG")}
                     disabled={isAnswered}
-                    className={`w-full p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    className={`w-full rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
                       isAnswered
-                        ? correctAns === "LONG"
-                          ? "bg-[#00c805]/10 border-[#00c805] text-[#00c805]"
-                          : selectedOption === "LONG"
-                            ? "bg-[#ff3b30]/10 border-[#ff3b30] text-[#ff3b30]"
-                            : "bg-transparent border-neutral-900 text-slate-600"
-                        : "bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-200"
+                        ? `py-2 px-3 ${
+                          correctAns === "LONG"
+                            ? "bg-[#00c805]/10 border-[#00c805] text-[#00c805]"
+                            : selectedOption === "LONG"
+                              ? "bg-[#ff3b30]/10 border-[#ff3b30] text-[#ff3b30]"
+                              : "bg-transparent border-neutral-900 text-slate-600"
+                        }`
+                        : "p-3.5 bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-200"
                     }`}
                   >
                     <div className="flex flex-col pr-2">
                       <span className="text-xs font-bold">突破多单 (Long Breakout)</span>
-                      <span className="text-[10px] opacity-75 mt-0.5 text-slate-400">在信号 K 线高点上方挂多单，预判上涨。</span>
+                      {!isAnswered && <span className="text-[10px] opacity-75 mt-0.5 text-slate-400">在信号 K 线高点上方挂多单，预判上涨。</span>}
                     </div>
                     {isAnswered && correctAns === "LONG" && <Check className="w-4 h-4 text-[#00c805] shrink-0" />}
                     {isAnswered && selectedOption === "LONG" && correctAns !== "LONG" && <X className="w-4 h-4 text-[#ff3b30] shrink-0" />}
@@ -538,19 +540,21 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                   <button
                     onClick={() => handleAnswerSubmit("SHORT")}
                     disabled={isAnswered}
-                    className={`w-full p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    className={`w-full rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
                       isAnswered
-                        ? correctAns === "SHORT"
-                          ? "bg-[#00c805]/10 border-[#00c805] text-[#00c805]"
-                          : selectedOption === "SHORT"
-                            ? "bg-[#ff3b30]/10 border-[#ff3b30] text-[#ff3b30]"
-                            : "bg-transparent border-neutral-900 text-slate-600"
-                        : "bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-200"
+                        ? `py-2 px-3 ${
+                          correctAns === "SHORT"
+                            ? "bg-[#00c805]/10 border-[#00c805] text-[#00c805]"
+                            : selectedOption === "SHORT"
+                              ? "bg-[#ff3b30]/10 border-[#ff3b30] text-[#ff3b30]"
+                              : "bg-transparent border-neutral-900 text-slate-600"
+                        }`
+                        : "p-3.5 bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-200"
                     }`}
                   >
                     <div className="flex flex-col pr-2">
                       <span className="text-xs font-bold">跌破空单 (Short Breakdown)</span>
-                      <span className="text-[10px] opacity-75 mt-0.5 text-slate-400">在信号 K 线低点下方挂空单，预判下行。</span>
+                      {!isAnswered && <span className="text-[10px] opacity-75 mt-0.5 text-slate-400">在信号 K 线低点下方挂空单，预判下行。</span>}
                     </div>
                     {isAnswered && correctAns === "SHORT" && <Check className="w-4 h-4 text-[#00c805] shrink-0" />}
                     {isAnswered && selectedOption === "SHORT" && correctAns !== "SHORT" && <X className="w-4 h-4 text-[#ff3b30] shrink-0" />}
@@ -560,17 +564,19 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                   <button
                     onClick={() => handleAnswerSubmit("SKIP")}
                     disabled={isAnswered}
-                    className={`w-full p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    className={`w-full rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
                       isAnswered
-                        ? selectedOption === "SKIP"
-                          ? "bg-neutral-900/40 border-neutral-700 text-slate-400"
-                          : "bg-transparent border-neutral-900 text-slate-600"
-                        : "bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-400 hover:text-slate-200"
+                        ? `py-2 px-3 ${
+                          selectedOption === "SKIP"
+                            ? "bg-neutral-900/40 border-neutral-700 text-slate-400"
+                            : "bg-transparent border-neutral-900 text-slate-600"
+                        }`
+                        : "p-3.5 bg-black border-neutral-800 hover:border-white hover:bg-neutral-900 text-slate-400 hover:text-slate-200"
                     }`}
                   >
                     <div className="flex flex-col pr-2">
                       <span className="text-xs font-bold">空仓观望 / 不确定 (Stay Cash)</span>
-                      <span className="text-[10px] opacity-75 mt-0.5 text-slate-500">不确定未来方向，选择跳过此信号。不计入胜率。</span>
+                      {!isAnswered && <span className="text-[10px] opacity-75 mt-0.5 text-slate-500">不确定未来方向，选择跳过此信号。不计入胜率。</span>}
                     </div>
                     {isAnswered && selectedOption === "SKIP" && <Eye className="w-4 h-4 text-slate-400 shrink-0" />}
                   </button>
@@ -580,9 +586,9 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
           </div>
 
           {/* Bottom Dynamic Status & Next Question */}
-          <div className="mt-6 pt-4 border-t border-neutral-800">
+          <div className="mt-5 pt-3.5 border-t border-neutral-800">
             {isAnswered ? (
-              <div className="space-y-4 animate-fade-in text-left">
+              <div className="space-y-3.5 animate-fade-in text-left">
                 {/* Flat, cohesive results ribbon */}
                 <div className={`p-3 rounded-none border flex items-start gap-2.5 ${
                   selectedOption === "SKIP"
@@ -614,16 +620,7 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                   </div>
                 </div>
 
-                {/* Flat commentary text */}
-                <div className="px-1 text-left font-mono">
-                  <p className="text-[9px] text-white font-bold uppercase tracking-wider">微观博弈机制 (Order Flow Dynamics):</p>
-                  <p className="text-[11px] text-slate-300 mt-1 leading-relaxed font-sans">
-                    {correctAns === "LONG" 
-                      ? "看涨结构：信号 K 线下方堆积大额被动买单（表现为下影线或阳线吞没），空方深砸无果。当价格向上刺穿信号 K 线高点时，空头止损买单（Buy Stops）与多头破位追多单合流，形成动能喷发。"
-                      : "看跌结构：高位主动卖单不断蚕食多头买盘。当价格跌破信号 K 线低点时，瞬间触发密集的追高多头平仓卖单与多米诺骨牌式的多头保护性止损，从而诱发急剧下行。"}
-                  </p>
-                </div>
-
+                {/* Primary CTA (Next Challenge) button - Placed immediately below the results for high visibility */}
                 <button
                   onClick={() => {
                     // Pick a random pattern from currently filtered category, or all
@@ -642,11 +639,21 @@ export default function ChallengeMode({ candles, patterns, zones, trend, isChine
                       setupNewChallenge(false);
                     }
                   }}
-                  className="w-full py-2.5 px-4 rounded-md bg-white hover:bg-neutral-200 text-black font-black transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-white/5 cursor-pointer text-xs min-h-[38px]"
+                  className="w-full py-2 px-4 rounded-md bg-white hover:bg-neutral-200 text-black font-black transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-white/5 cursor-pointer text-xs min-h-[38px]"
                 >
                   下一场实战对抗
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+
+                {/* Secondary Commentary - Clean, compact bottom section */}
+                <div className="p-2.5 bg-neutral-900/30 border border-neutral-900 rounded-none text-left font-mono">
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">微观博弈机制 (Order Flow):</p>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-normal font-sans">
+                    {correctAns === "LONG" 
+                      ? "看涨结构：信号 K 线下方堆积大额被动买单（表现为下影线或阳线吞没），空方深砸无果。当价格向上刺穿信号 K 线高点时，空头止损买单（Buy Stops）与多头破位追多单合流，形成动能喷发。"
+                      : "看跌结构：高位主动卖单不断蚕食多头买盘。当价格跌破信号 K 线低点时，瞬间触发密集的追高多头平仓卖单与多米诺骨牌式的多头保护性止损，从而诱发急剧下行。"}
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center text-center py-6 text-slate-500 font-mono">
