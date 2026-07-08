@@ -1147,45 +1147,71 @@ export default function PriceActionChart({
               </div>
             ) : (
               <>
-                <button
-                  onClick={() => setShowTimeframeDropdown(!showTimeframeDropdown)}
-                  className="flex items-center justify-center gap-1 h-6 sm:h-7 px-1.5 sm:px-2 bg-[#1e222d]/40 hover:bg-[#1e222d] text-slate-200 border border-[#1e222d]/60 hover:border-slate-500 rounded text-[9px] sm:text-[10px] font-bold tracking-wide transition-all cursor-pointer min-h-[20px] sm:min-h-[24px] font-mono"
-                >
-                  <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
-                  <span>{timeframe ? timeframe.toUpperCase() : "5M"}</span>
-                  <ChevronDown className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-slate-400" />
-                </button>
-                
-                {showTimeframeDropdown && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setShowTimeframeDropdown(false)} />
-                    <div className="absolute left-0 mt-1 rounded bg-[#0d0d11] border border-[#1e222d] p-1 shadow-2xl z-50 animate-fade-in w-36">
-                      {[
-                        { label: "1 min K (1m)", val: "1m" },
-                        { label: "5 min K (5m)", val: "5m" },
-                        { label: "15 min K (15m)", val: "15m" },
-                        { label: "4h K (4h)", val: "4h" },
-                        { label: "日 K (1d)", val: "1d" },
-                      ].map(t => (
-                        <button
-                          key={t.val}
-                          onClick={() => {
-                            setTimeframe(t.val as any);
-                            setShowTimeframeDropdown(false);
-                          }}
-                          className={`w-full text-left px-2 py-1.5 rounded text-[10px] font-bold transition-colors flex items-center justify-between min-h-[26px] ${
-                            timeframe === t.val
-                              ? "bg-white text-black font-black"
-                              : "text-slate-400 hover:bg-neutral-950 hover:text-white"
-                          }`}
-                        >
-                          <span>{t.label}</span>
-                          {timeframe === t.val && <Check className="w-3 h-3 text-black" />}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
+                {/* Desktop View: direct borderless buttons */}
+                <div className="hidden sm:flex items-center gap-1.5 bg-transparent select-none">
+                  {[
+                    { label: "1", val: "1m" },
+                    { label: "5", val: "5m" },
+                    { label: "15", val: "15m" },
+                    { label: "4H", val: "4h" },
+                    { label: "日", val: "1d" },
+                  ].map(t => (
+                    <button
+                      key={t.val}
+                      onClick={() => setTimeframe(t.val as any)}
+                      className={`px-2.5 py-1 text-xs font-bold font-mono transition-all duration-150 rounded cursor-pointer min-h-[22px] border-none outline-none ${
+                        timeframe === t.val
+                          ? "text-white bg-[#1e222d] font-black"
+                          : "text-slate-400 hover:text-white hover:bg-[#1e222d]/40"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile View: existing compact dropdown */}
+                <div className="sm:hidden relative">
+                  <button
+                    onClick={() => setShowTimeframeDropdown(!showTimeframeDropdown)}
+                    className="flex items-center justify-center gap-1 h-6 px-1.5 bg-[#1e222d]/40 hover:bg-[#1e222d] text-slate-200 border border-[#1e222d]/60 hover:border-slate-500 rounded text-[9px] font-bold tracking-wide transition-all cursor-pointer min-h-[20px] font-mono"
+                  >
+                    <Clock className="w-2.5 h-2.5 text-slate-400" />
+                    <span>{timeframe ? timeframe.toUpperCase() : "5M"}</span>
+                    <ChevronDown className="w-2 h-2 text-slate-400" />
+                  </button>
+                  
+                  {showTimeframeDropdown && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowTimeframeDropdown(false)} />
+                      <div className="absolute left-0 mt-1 rounded bg-[#0d0d11] border border-[#1e222d] p-1 shadow-2xl z-50 animate-fade-in w-36">
+                        {[
+                          { label: "1 min K (1m)", val: "1m" },
+                          { label: "5 min K (5m)", val: "5m" },
+                          { label: "15 min K (15m)", val: "15m" },
+                          { label: "4h K (4h)", val: "4h" },
+                          { label: "日 K (1d)", val: "1d" },
+                        ].map(t => (
+                          <button
+                            key={t.val}
+                            onClick={() => {
+                              setTimeframe(t.val as any);
+                              setShowTimeframeDropdown(false);
+                            }}
+                            className={`w-full text-left px-2 py-1.5 rounded text-[10px] font-bold transition-colors flex items-center justify-between min-h-[26px] ${
+                              timeframe === t.val
+                                ? "bg-white text-black font-black"
+                                : "text-slate-400 hover:bg-neutral-950 hover:text-white"
+                            }`}
+                          >
+                            <span>{t.label}</span>
+                            {timeframe === t.val && <Check className="w-3 h-3 text-black" />}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </>
             )}
           </div>
