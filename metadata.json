@@ -1,6 +1,6 @@
 {
   "name": "SPX Price Action Compass",
-  "description": "An objective, high-precision price action visualizer and order-flow simulation environment based on the Al Brooks methodology.",
+  "description": "SPX Price Action Compass (SPX罗盘 / 价格行为罗盘 / spx compass) - An objective, high-precision price action visualizer and order-flow simulation environment based on the Al Brooks methodology.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
