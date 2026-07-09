@@ -1,5 +1,11 @@
 # SPX Price Action Compass (SPX 价格行为罗盘)
 
+<p align="center">
+  <b>简体中文</b> | <a href="./README_EN.md">English</a> | <a href="./README_JA.md">日本語</a> | <a href="./README_KO.md">한국어</a>
+</p>
+
+---
+
 `SPX Price Action Compass` 是一款专为标普500指数（SPX）打造的高交互性价格行为（Price Action）深度分析与复盘系统。它集成了多周期行情图表、日内高精精细走势下钻、自动价格行为模式识别、支撑/阻力位（S&R）动态检测，助力投资者快速精通盘面结构。
 
 该项目完全开源，无任何广告及无关商业跟踪组件，专为注重技术分析与流畅体验的交易员和研究者设计。
